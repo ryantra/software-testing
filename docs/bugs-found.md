@@ -1,62 +1,106 @@
-# Critical Bugs Found in Utility Library
+BUG-001: Floating Point Precision Error in Cart Totals
+Severity: CRITICAL | Priority: P1 | Status: Open
+Function: src/add.js
+Found by: Manual testing (e-commerce scenario validation)
+Description
+JavaScript floating-point arithmetic causes incorrect financial calculations in shopping cart totals.
 
-## BUG-001: filter.js Returns Nested Empty Array
-**Severity:** HIGH | **Priority:** P2 | **Status:** Open
+Impact on E-Commerce
 
-**Function:** `src/filter.js`
+BLOCKS Scenario 1: Customer Purchase Flow
+Customers see incorrect cart totals (e.g., $30.59 instead of $30.60)
+Financial accuracy compromised - potential regulatory issues
+Trust in checkout process damaged
+Could cause payment discrepancies
 
-**Description:** When filtering returns no results, function returns `[[]]` instead of `[]`.
+BUG-002: filter.js Crashes on Null Values
+Severity: HIGH | Priority: P1 | Status: Open
+Function: src/filter.js
+Found by: Manual testing
+Description
+Function crashes with TypeError when array contains null values and predicate tries to access properties.
 
-**Impact on E-Commerce:**
-- Affects product search (Scenario 1, 3)
-- Empty search results display incorrectly
-- Could break UI rendering expecting flat array
+Impact on E-Commerce
 
-**Test Case:** `src/__test__/manual/filter.test.js` - lines 28-37
+Affects Scenario 1 & 3: Product search and filtering
+Search feature crashes when database has incomplete records
+Poor user experience - entire page breaks
+Data quality issues not handled gracefully
 
----
+BUG-003: toNumber.js Converts Empty String to 0
+Severity: HIGH | Priority: P2 | Status: Open
+Function: src/toNumber.js
+Found by: Manual testing (price validation)
+Description
+Function incorrectly converts empty string "" to 0 instead of NaN, causing validation logic to fail.
 
-## BUG-002: compact.js Removes First Truthy Element
-**Severity:** CRITICAL | **Priority:** P1 | **Status:** Open
+Impact on E-Commerce
 
-**Function:** `src/compact.js`
+Affects Scenario 2: Producer adding products
+Empty price fields pass validation with price = $0.00
+Products listed for free by mistake
+Revenue loss potential
 
-**Description:** Function incorrectly removes the FIRST truthy value when removing falsy values.
+BUG-004: filter.js Doesn't Pass Array Parameter to Predicate
+Severity: HIGH | Priority: P2 | Status: Open
+Function: src/filter.js
+Found by: AI-generated tests
+Description
+The third parameter (original array) is not passed to the predicate function, breaking predicates that need array context.
 
-**Input:** `[0, 1, false, 2, '', 3]`
-**Expected:** `[1, 2, 3]`
-**Actual:** `[2, 3]` ← Missing element 1!
+Impact on E-Commerce
 
-**Impact on E-Commerce:**
-- **CRITICAL:** First product in search results disappears!
-- Revenue loss - customers can't see/buy first product
-- Data integrity issue
+Advanced filtering logic that needs array context fails
+Can't implement "filter by relative position" (e.g., "top 10%")
+Limits flexibility for complex search features
 
-**Test Case:** `src/__test__/manual/compact.test.js` - line 9
+BUG-005: isEmpty.js Returns True for Zero
+Severity:MEDIUM | Priority: P2 | Status: Open
+Function: src/isEmpty.js
+Found by: Manual testing
+Description
+Function incorrectly treats 0 as empty, but 0 is a valid price value in e-commerce.
 
-**Recommendation:** DO NOT use in production!
+Impact on E-Commerce
 
----
+Free products (price = 0) might be filtered out
+Validation logic may reject valid zero prices
+Affects promotional items or giveaways
 
-## BUG-003: chunk.js Returns Malformed Array Structure
-**Severity:** CRITICAL | **Priority:** P1 | **Status:** Open
+ BUG-006: compact.js Doesn't Remove NaN
+Severity: LOW | Priority: P3 | Status: Open
+Function: src/compact.js
+Found by: Manual testing
+Description
+Function removes false, null, 0, "", undefined but doesn't remove NaN values.
 
-**Function:** `src/chunk.js`
+Impact on E-Commerce
 
-**Description:** Function returns array with undefined values and wrong structure.
+Minor - invalid price calculations might propagate
+Could cause issues in sum/average calculations
+Easy to work around
 
-**Input:** `chunk([1, 2, 3, 4, 5], 2)`
-**Expected:** `[[1, 2], [3, 4], [5]]`
-**Actual:** `[[5, undefined], undefined, undefined]`
+Production Readiness Assessment
+Overall Status: NOT PRODUCTION READY
+Blocking Issues:
 
-**Impact on E-Commerce:**
-- Pagination completely broken (Scenario 3)
-- Customers can't browse product pages
-- Unusable for pagination feature
+BUG-001 (Critical) - Financial calculations incorrect - MUST FIX
+BUG-002 (High) - Crashes on null data - MUST FIX before deployment
+BUG-003 (High) - Validation bypass - MUST FIX for data integrity
 
-**Test Case:** `src/__test__/manual/chunk.test.js` - line 8
+By E2E Scenario:
 
-**Recommendation:** DO NOT use in production!
-```
+Scenario 1 (Customer Purchase): FAIL - BUG-001 blocks checkout, BUG-002 crashes search
+Scenario 2 (Producer Portal): CONDITIONAL - BUG-003 affects validation, workarounds possible
+Scenario 3 (Advanced Filtering): FAIL - BUG-002 and BUG-004 affect search reliability
 
----
+Recommended Actions Before Production:
+
+Fix BUG-001 (add.js precision) - Use Math.round() or decimal.js library
+Fix BUG-002 (filter.js null handling) - Add null checks
+Fix BUG-003 (toNumber empty string) - Return NaN for empty input
+Run regression testing suite (all 114 tests must pass)
+Add integration testing for E2E scenarios
+Consider fixing BUG-004, 005, 006 for completeness
+
+Estimated fix time: 6-8 hours for all blocking bugs

@@ -1,5 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/ryantra/software-test/badge.svg?branch=main)](https://coveralls.io/github/ryantra/software-test?branch=main)
-
+[![Coverage Status](https://coveralls.io/repos/github/ryantra/software-testing/badge.svg?branch=main)](https://coveralls.io/github/ryantra/software-testing?branch=main)
 ## Project Description
 Comprehensive unit testing suite for an e-commerce utility library. Tests validate functions used in product search, cart calculations, and producer data management.
 

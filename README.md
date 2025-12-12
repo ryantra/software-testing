@@ -1,6 +1,3 @@
-# software-testing
-# software-testing
-# Test Coverage Report
 [![Coverage Status](https://coveralls.io/repos/github/ryantra/software-test/badge.svg?branch=main)](https://coveralls.io/github/ryantra/software-test?branch=main)
 
 ## Project Description
